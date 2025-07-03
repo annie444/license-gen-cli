@@ -5,6 +5,7 @@ use handlebars::Handlebars;
 use serde::Serialize;
 use std::process;
 
+#[tracing::instrument]
 pub fn generate_mit_license() -> LicenseTexts {
     let year: u16 = prompt("Enter the copyright year");
     let fullname: String = prompt("Enter the full name of the copyright holder");

@@ -5,6 +5,7 @@ use handlebars::Handlebars;
 use serde::Serialize;
 use std::process;
 
+#[tracing::instrument]
 pub fn generate_apache_license_comment(year: u16, fullname: String) -> String {
     let mut handlebars = Handlebars::new();
     match handlebars.register_template_string("apache_comment", APACHE_COMMENT) {
@@ -26,10 +27,12 @@ pub fn generate_apache_license_comment(year: u16, fullname: String) -> String {
     }
 }
 
+#[tracing::instrument]
 pub fn generate_apache_license_text() -> String {
     APACHE_TEXT.to_string()
 }
 
+#[tracing::instrument]
 pub fn generate_apache_license() -> LicenseTexts {
     let year: u16 = prompt("Enter the copyright year");
     let fullname: String = prompt("Enter the full name of the copyright holder");

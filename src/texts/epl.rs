@@ -5,6 +5,7 @@ use handlebars::Handlebars;
 use serde::Serialize;
 use std::process;
 
+#[tracing::instrument]
 pub fn generate_epl_license() -> LicenseTexts {
     let licenses: Option<Vec<String>> = get_licenses();
     let license = EplLicenseSecondaryTemplate { licenses };
@@ -32,6 +33,7 @@ pub fn generate_epl_license() -> LicenseTexts {
     }
 }
 
+#[tracing::instrument]
 pub fn get_licenses() -> Option<Vec<String>> {
     let licenses: Option<String> = prompt_optional(
         "Enter the secondary licenses that are permitted (comma separated, optional): ",

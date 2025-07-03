@@ -1,5 +1,6 @@
 use super::LicenseTexts;
 
+#[tracing::instrument]
 pub fn generate_cddl_license() -> LicenseTexts {
     LicenseTexts {
         text: CDDL.to_string(),

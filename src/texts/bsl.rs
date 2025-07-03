@@ -1,5 +1,6 @@
 use super::LicenseTexts;
 
+#[tracing::instrument]
 pub fn generate_bsl_license() -> LicenseTexts {
     LicenseTexts {
         text: BSL_TEXT.to_string(),

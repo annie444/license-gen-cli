@@ -7,6 +7,7 @@ use std::process;
 use std::str::FromStr;
 use tempfile::NamedTempFile;
 
+#[tracing::instrument]
 pub fn output(
     license: &LicenseTexts,
     add_comment: bool,
@@ -14,69 +15,44 @@ pub fn output(
     source_path: PathBuf,
     output: PathBuf,
 ) {
-    if add_comment {
-        if source_path.exists() {
-            if source_path.is_dir() {
-                let files = match fs::read_dir(&source_path) {
-                    Ok(files) => files,
-                    Err(e) => {
-                        ceprintln!(
-                            "<bold><red>Failed to read directory {}</></>: {}",
-                            source_path.display(),
-                            e
-                        );
-                        return;
-                    }
-                };
-                for file in files {
-                    match file {
-                        Ok(entry) => {
-                            if let Err(e) = write_comment(comment, &license.comment, entry.path()) {
-                                ceprintln!(
-                                    "<bold><red>Failed to write comment for file {}</></>: {}",
-                                    entry.path().display(),
-                                    e
-                                );
-                                return;
-                            }
-                        }
-                        Err(e) => {
-                            ceprintln!(
-                                "<bold><red>Failed to read entry in directory {}</></>: {}",
-                                source_path.display(),
-                                e
-                            );
-                            return;
-                        }
-                    }
-                }
-            } else if source_path.is_file() {
-                if let Err(e) = write_comment(comment, &license.comment, &source_path) {
-                    ceprintln!(
-                        "<bold><red>Failed to write comment for file {}</></>: {}",
-                        source_path.display(),
-                        e
-                    );
-                    return;
-                }
-            } else {
+    match (
+        add_comment,
+        source_path.exists(),
+        source_path.is_dir(),
+        source_path.is_file(),
+    ) {
+        (true, true, true, _) => iterate_dir(&source_path, comment, &license.comment),
+        (true, true, _, true) => {
+            if let Err(e) = write_comment(comment, &license.comment, &source_path) {
                 ceprintln!(
-                    "<bold><red>Source path is neither a file nor a directory</></>: {}",
-                    source_path.display()
+                    "<bold><red>Failed to write comment for file {}</></>: {}",
+                    source_path.display(),
+                    e
                 );
                 return;
             }
-        } else {
+        }
+        (true, true, false, false) => {
+            ceprintln!(
+                "<bold><red>Source path is neither a file nor a directory</></>: {}",
+                source_path.display()
+            );
+            return;
+        }
+        (true, false, _, _) => {
             ceprintln!(
                 "<bold><red>Source path does not exist</></>: {}",
                 source_path.display()
             );
             return;
         }
-    } else {
-        cprintln!("<bold><cyan>Add this as a comment to the top of your source file(s):</></>\n");
-        println!("{}", license.comment);
-    }
+        (false, _, _, _) => {
+            cprintln!(
+                "<bold><cyan>Add this as a comment to the top of your source file(s):</></>\n"
+            );
+            println!("{}", license.comment);
+        }
+    };
 
     let mut license_file = match OpenOptions::new()
         .write(true)
@@ -94,6 +70,7 @@ pub fn output(
             return;
         }
     };
+
     match license_file.write_all(license.text.as_bytes()) {
         Ok(_) => (),
         Err(e) => {
@@ -104,7 +81,8 @@ pub fn output(
             );
             return;
         }
-    }
+    };
+
     if let Err(e) = license_file.flush() {
         ceprintln!(
             "<bold><red>Failed to flush license file {}</></>: {}",
@@ -112,7 +90,7 @@ pub fn output(
             e
         );
         return;
-    }
+    };
 
     if let Some(alt) = &license.alt {
         cprintln!(
@@ -124,7 +102,7 @@ files or to the readme.</>
 "#,
         );
         println!("{}", alt);
-    }
+    };
 
     if let Some(interactive) = &license.interactive {
         cprintln!(
@@ -135,10 +113,11 @@ a footer section, or in an about section.</>
 "#,
         );
         println!("{}", interactive);
-    }
+    };
 }
 
-fn write_comment<P: AsRef<Path>>(
+#[tracing::instrument]
+fn write_comment<P: AsRef<Path> + std::fmt::Debug>(
     comment: &str,
     comment_block: &str,
     output_file: P,
@@ -162,6 +141,48 @@ fn write_comment<P: AsRef<Path>>(
     Ok(())
 }
 
+#[tracing::instrument]
+fn iterate_dir<P: AsRef<Path> + std::fmt::Debug>(
+    path: P,
+    comment: &str,
+    comment_block: &str,
+) -> () {
+    let files = match path.as_ref().read_dir() {
+        Ok(files) => files,
+        Err(e) => {
+            ceprintln!(
+                "<bold><red>Failed to read directory {}</></>: {}",
+                path.as_ref().display(),
+                e
+            );
+            return;
+        }
+    };
+    for file in files {
+        match file {
+            Ok(entry) => {
+                if let Err(e) = write_comment(comment, comment_block, entry.path()) {
+                    ceprintln!(
+                        "<bold><red>Failed to write comment for file {}</></>: {}",
+                        entry.path().display(),
+                        e
+                    );
+                    return;
+                }
+            }
+            Err(e) => {
+                ceprintln!(
+                    "<bold><red>Failed to read entry in directory {}</></>: {}",
+                    path.as_ref().display(),
+                    e
+                );
+                return;
+            }
+        }
+    }
+}
+
+#[tracing::instrument]
 pub fn prompt<T>(q: &str) -> T
 where
     T: FromStr,
@@ -197,6 +218,7 @@ where
     }
 }
 
+#[tracing::instrument]
 pub fn prompt_optional<T>(q: &str) -> Option<T>
 where
     T: FromStr,
@@ -236,6 +258,7 @@ where
     }
 }
 
+#[tracing::instrument]
 pub fn prompt_bool(q: &str) -> bool {
     loop {
         let response = prompt::<String>(q);
@@ -249,6 +272,7 @@ pub fn prompt_bool(q: &str) -> bool {
     }
 }
 
+#[tracing::instrument]
 pub fn prompt_optional_bool(q: &str) -> Option<bool> {
     loop {
         let response = prompt_optional::<String>(q);

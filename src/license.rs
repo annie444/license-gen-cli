@@ -79,6 +79,7 @@ impl fmt::Display for Licenses {
 }
 
 impl ValueEnum for Licenses {
+    #[tracing::instrument]
     fn value_variants<'a>() -> &'a [Self] {
         &[
             Licenses::Mit,
@@ -104,11 +105,13 @@ impl ValueEnum for Licenses {
         ]
     }
 
+    #[tracing::instrument]
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
         Some(self.to_string().into())
     }
 }
 
+#[tracing::instrument]
 pub fn generate_license_text(license: &Licenses) -> texts::LicenseTexts {
     match license {
         Licenses::Mit => texts::generate_mit_license(),

@@ -6,6 +6,7 @@ use handlebars::Handlebars;
 use serde::Serialize;
 use std::process;
 
+#[tracing::instrument]
 pub fn generate_agpl_license(version: VersionAmmendment) -> LicenseTexts {
     let ident = match version {
         VersionAmmendment::None => AGPL_3_OR_LATER,
@@ -61,6 +62,7 @@ pub fn generate_agpl_license(version: VersionAmmendment) -> LicenseTexts {
     }
 }
 
+#[tracing::instrument]
 pub fn generate_gpl_license(version: VersionAmmendment) -> LicenseTexts {
     let ident = match version {
         VersionAmmendment::None => GPL_3_OR_LATER,
@@ -116,6 +118,7 @@ pub fn generate_gpl_license(version: VersionAmmendment) -> LicenseTexts {
     }
 }
 
+#[tracing::instrument]
 pub fn generate_lgpl_license(version: VersionAmmendment) -> LicenseTexts {
     let ident = match version {
         VersionAmmendment::None => LGPL_3_OR_LATER,
@@ -171,6 +174,7 @@ pub fn generate_lgpl_license(version: VersionAmmendment) -> LicenseTexts {
     }
 }
 
+#[tracing::instrument]
 pub fn generate_interact(
     handlebars: &mut Handlebars,
     year: u16,
@@ -200,6 +204,7 @@ pub fn generate_interact(
     }
 }
 
+#[tracing::instrument]
 pub fn generate_comment(
     handlebars: &mut Handlebars,
     year: u16,
@@ -229,6 +234,7 @@ pub fn generate_comment(
     }
 }
 
+#[tracing::instrument]
 pub fn generate_secondary_text(
     handlebars: &mut Handlebars,
     year: u16,
@@ -270,6 +276,7 @@ pub fn generate_secondary_text(
     }
 }
 
+#[tracing::instrument]
 pub fn generate_text(handlebars: &mut Handlebars, license: GnuLicenseText) -> String {
     let gnu_license = GnuLicenseTemplate { license };
     match handlebars.register_template_string("gnu_license", GNU_TEXT) {
@@ -288,7 +295,7 @@ pub fn generate_text(handlebars: &mut Handlebars, license: GnuLicenseText) -> St
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GnuLicenseSecondaryTemplate {
     pub oragnization: String,
     pub program: String,
@@ -311,14 +318,14 @@ released by {{signer}}, {{day}} {{month}} {{year}}
 {{signer}}, {{position}}
 "#;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Debug)]
 pub struct GnuLicenseIdent {
     pub name: &'static str,
     pub constraint: &'static str,
     pub scope: &'static str,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GplLicenseInteractTemplate {
     pub fullname: String,
     pub year: u16,
@@ -370,7 +377,7 @@ pub const LGPL_3_ONLY: GnuLicenseIdent = GnuLicenseIdent {
     scope: "library",
 };
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GnuLicenseCommentTemplate {
     pub description: String,
     pub year: u16,
@@ -399,18 +406,18 @@ Free Software Foundation, Inc.,
 Or, see <https://www.gnu.org/licenses/>.
 "#;
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GnuLicenseTemplate {
     pub license: GnuLicenseText,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GnuLicenseText {
     pub header: &'static str,
     pub general: GnuLicenseTextGeneral,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct GnuLicenseTextGeneral {
     pub title: &'static str,
     pub version: u8,

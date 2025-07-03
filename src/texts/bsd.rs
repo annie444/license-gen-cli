@@ -6,6 +6,7 @@ use handlebars::Handlebars;
 use serde::Serialize;
 use std::process;
 
+#[tracing::instrument]
 pub fn generate_bsd_license(sublicense: BsdAmmendment) -> LicenseTexts {
     let year: u16 = prompt("Enter the copyright year");
     let fullname: String = prompt("Enter the full name of the copyright holder");
@@ -17,6 +18,7 @@ pub fn generate_bsd_license(sublicense: BsdAmmendment) -> LicenseTexts {
     }
 }
 
+#[tracing::instrument]
 pub fn generate_base_license(year: u16, fullname: String) -> LicenseTexts {
     let license = BsdLicenseTemplate {
         year,
@@ -56,6 +58,7 @@ pub fn generate_base_license(year: u16, fullname: String) -> LicenseTexts {
     }
 }
 
+#[tracing::instrument]
 pub fn generate_attribution_license(year: u16, fullname: String) -> LicenseTexts {
     let organization: Option<String> =
         prompt_optional("Enter the name of the organization (optional): ");
@@ -100,6 +103,7 @@ pub fn generate_attribution_license(year: u16, fullname: String) -> LicenseTexts
     }
 }
 
+#[tracing::instrument]
 pub fn generate_modification_license(year: u16, fullname: String) -> LicenseTexts {
     let license = BsdLicenseTemplate {
         year,
@@ -139,6 +143,7 @@ pub fn generate_modification_license(year: u16, fullname: String) -> LicenseText
     }
 }
 
+#[tracing::instrument]
 pub fn generate_no_military_license(year: u16, fullname: String) -> LicenseTexts {
     let license = BsdLicenseTemplate {
         year,

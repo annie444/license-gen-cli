@@ -1,6 +1,8 @@
 use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::{Parser, value_parser};
+use clap_verbosity_flag::Verbosity;
 use std::path::PathBuf;
+
 pub mod io;
 pub mod license;
 pub mod texts;
@@ -42,6 +44,9 @@ pub struct Cli {
     #[arg(short, long, default_value = "LICENSE.txt")]
     pub output: PathBuf,
 
+    #[command(flatten)]
+    pub verbosity: Verbosity,
+
     /// The license to generate text for.
     #[arg(value_parser = value_parser!(license::Licenses))]
     pub license: license::Licenses,
@@ -55,7 +60,10 @@ fn main() {
         source_path,
         output,
         license,
+        verbosity,
     } = cli;
+
+    tracing_subscriber::fmt().with_max_level(verbosity).init();
 
     // Here you would typically call a function to handle the CLI arguments,
     // such as generating the license text based on the provided options.

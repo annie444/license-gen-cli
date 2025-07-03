@@ -1,5 +1,6 @@
 use super::LicenseTexts;
 
+#[tracing::instrument]
 pub fn generate_unlicense_license() -> LicenseTexts {
     LicenseTexts {
         text: UNLICENSE.to_string(),

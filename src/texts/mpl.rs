@@ -1,5 +1,6 @@
 use super::LicenseTexts;
 
+#[tracing::instrument]
 pub fn generate_mpl_license() -> LicenseTexts {
     LicenseTexts {
         text: MPL_TEXT.to_string(),
