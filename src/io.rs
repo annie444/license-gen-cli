@@ -1,5 +1,5 @@
 use crate::texts::LicenseTexts;
-use color_print::{ceprintln, cprint, cprintln};
+use color_print::{ceprintln, cformat, cprint, cprintln};
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, Write};
 use std::path::{Path, PathBuf};
@@ -48,7 +48,7 @@ pub fn output(
         }
         (false, _, _, _) => {
             cprintln!(
-                "<bold><cyan>Add this as a comment to the top of your source file(s):</></>\n"
+                "<bold><magenta>Add this as a comment to the top of your source file(s):</></>\n"
             );
             println!("{}", license.comment);
         }
@@ -94,7 +94,7 @@ pub fn output(
 
     if let Some(alt) = &license.alt {
         cprintln!(
-            r#"<cyan><bold>
+            r#"<magenta><bold>
 You'll need to include the following amendment to your license.</> 
 This is usually added to the end of the license file, but there is no strict requirement 
 for where it goes. Another common place is to add it as a comment at the top of your source 
@@ -106,7 +106,7 @@ files or to the readme.</>
 
     if let Some(interactive) = &license.interactive {
         cprintln!(
-            r#"<cyan><bold>
+            r#"<magenta><bold>
 Since your program is interactive, you should also include the following notice in your program's output.</>
 This needs to be easily accessible to users, such as in a help command, at the start of the program, in 
 a footer section, or in an about section.</>
@@ -129,13 +129,12 @@ fn write_comment<P: AsRef<Path> + std::fmt::Debug>(
         .open(&tmp_path)?;
     for line in comment_block.lines() {
         writeln!(tmp_file, "{} {}", comment, line)?;
-        tmp_file.flush()?;
     }
     let src = OpenOptions::new().read(true).open(&output_file)?;
     for line in io::BufReader::new(src).lines() {
-        write!(tmp_file, "{}", line?)?;
-        tmp_file.flush()?;
+        writeln!(tmp_file, "{}", line?)?;
     }
+    tmp_file.flush()?;
     fs::remove_file(&output_file)?;
     fs::rename(tmp_path, output_file)?;
     Ok(())
@@ -261,7 +260,10 @@ where
 #[tracing::instrument]
 pub fn prompt_bool(q: &str) -> bool {
     loop {
-        let response = prompt::<String>(q);
+        let response = prompt::<String>(&cformat!(
+            "{} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
+            q
+        ));
         match response.to_lowercase().as_str() {
             "yes" | "y" | "true" | "t" => return true,
             "no" | "n" | "false" | "f" => return false,
@@ -275,14 +277,17 @@ pub fn prompt_bool(q: &str) -> bool {
 #[tracing::instrument]
 pub fn prompt_optional_bool(q: &str) -> Option<bool> {
     loop {
-        let response = prompt_optional::<String>(q);
+        let response = prompt_optional::<String>(&cformat!(
+            "{} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
+            q
+        ));
         match response {
             Some(r) => match r.to_lowercase().as_str() {
                 "yes" | "y" | "true" | "t" => return Some(true),
                 "no" | "n" | "false" | "f" => return Some(false),
                 "" => return None,
                 _ => ceprintln!(
-                    "<bold><yellow>Please answer '<italics>yes</>', '<italics>no</>', or leave blank for none.</></>"
+                    "<bold><yellow>Please answer '<italics>yes</>', '<italics>no</>', or <italics>leave blank</> for none.</></>"
                 ),
             },
             None => return None,

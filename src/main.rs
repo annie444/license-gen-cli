@@ -18,7 +18,7 @@ pub const STYLES: Styles = Styles::styled()
 
 /// Command line interface for generating license texts.
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None, styles = STYLES)]
+#[command(name = "license",author, version, about, long_about = None, styles = STYLES)]
 pub struct Cli {
     /// Whether to add the license comment headers to the
     /// source files. If this is not set, the program will

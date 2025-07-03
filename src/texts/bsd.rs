@@ -60,10 +60,8 @@ pub fn generate_base_license(year: u16, fullname: String) -> LicenseTexts {
 
 #[tracing::instrument]
 pub fn generate_attribution_license(year: u16, fullname: String) -> LicenseTexts {
-    let organization: Option<String> =
-        prompt_optional("Enter the name of the organization (optional): ");
-    let website: Option<String> =
-        prompt_optional("Enter the website of the organization (optional): ");
+    let organization: Option<String> = prompt_optional("Enter the name of the organization");
+    let website: Option<String> = prompt_optional("Enter the website of the organization");
 
     let license = BsdLicenseTemplate {
         year,
@@ -177,7 +175,7 @@ pub fn generate_no_military_license(year: u16, fullname: String) -> LicenseTexts
 
     LicenseTexts {
         text,
-        comment: "SPDX-License-Identifier: BSD-3-Clause-No-Military".to_string(),
+        comment: "SPDX-License-Identifier: BSD-3-Clause-No-Military-License".to_string(),
         alt: None,
         interactive: None,
     }

@@ -7,37 +7,38 @@ use std::process;
 
 #[tracing::instrument]
 pub fn generate_epl_license() -> LicenseTexts {
-    let licenses: Option<Vec<String>> = get_licenses();
-    let license = EplLicenseSecondaryTemplate { licenses };
-    let mut handlebars = Handlebars::new();
-    match handlebars.register_template_string("epl_alt", EPL_SECONDARY) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering template</></>: {}", e);
-            process::exit(1);
+    let mut alt: Option<String> = None;
+    if let Some(licenses) = get_licenses() {
+        let license = EplLicenseSecondaryTemplate { licenses };
+        let mut handlebars = Handlebars::new();
+        match handlebars.register_template_string("epl_alt", EPL_SECONDARY) {
+            Ok(_) => {}
+            Err(e) => {
+                ceprintln!("<bold><red>Error registering template</></>: {}", e);
+                process::exit(1);
+            }
         }
+        alt = match handlebars.render("epl_alt", &license) {
+            Ok(t) => Some(t),
+            Err(e) => {
+                ceprintln!("<bold><red>Error rendering template</></>: {}", e);
+                process::exit(1);
+            }
+        };
     }
-    let text = match handlebars.render("epl_alt", &license) {
-        Ok(t) => t,
-        Err(e) => {
-            ceprintln!("<bold><red>Error rendering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
 
     LicenseTexts {
         text: EPL_TEXT.to_string(),
         comment: "SPDX-License-Identifier: EPL-2.0".to_string(),
-        alt: Some(text),
+        alt,
         interactive: None,
     }
 }
 
 #[tracing::instrument]
 pub fn get_licenses() -> Option<Vec<String>> {
-    let licenses: Option<String> = prompt_optional(
-        "Enter the secondary licenses that are permitted (comma separated, optional): ",
-    );
+    let licenses: Option<String> =
+        prompt_optional("Enter the secondary licenses that are permitted (comma separated)");
     if let Some(licenses) = &licenses {
         if licenses.is_empty() {
             None
@@ -51,13 +52,13 @@ pub fn get_licenses() -> Option<Vec<String>> {
 
 #[derive(Serialize)]
 pub struct EplLicenseSecondaryTemplate {
-    pub licenses: Option<Vec<String>>,
+    pub licenses: Vec<String>,
 }
 
 pub const EPL_SECONDARY: &'static str = r#"This Source Code may also be made available under the following 
 Secondary Licenses when the conditions for such availability set forth 
 in the Eclipse Public License, v. 2.0 are satisfied:
-{{#each license}}
+{{#each licenses}}
 - {{this}}
 {{/each}}
 "#;

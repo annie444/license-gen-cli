@@ -7,17 +7,27 @@ use serde::Serialize;
 use std::process;
 
 #[tracing::instrument]
-pub fn generate_agpl_license(version: VersionAmmendment) -> LicenseTexts {
-    let ident = match version {
-        VersionAmmendment::None => AGPL_3_OR_LATER,
-        VersionAmmendment::OrLater => AGPL_3_OR_LATER,
-        VersionAmmendment::Only => AGPL_3_ONLY,
-    };
+fn get_basics(v: bool) -> (u16, String, String, Option<String>, String) {
+    // This function is used to get the basic information needed for the license.
+    let mut version: Option<String> = None;
     let year: u16 = prompt("Enter the copyright year");
     let fullname: String = prompt("Enter the full name of the copyright holder");
     let program: String = prompt("Enter the name of the program");
-    let version: Option<String> = prompt_optional("Enter the version of the program");
+    if v {
+        version = prompt_optional("Enter the version of the program");
+    }
     let description: String = prompt("Enter a short description of the program (5-10 words)");
+    (year, fullname, program, version, description)
+}
+
+#[tracing::instrument]
+pub fn generate_agpl_license(version: VersionAmmendment) -> LicenseTexts {
+    let ident = match version {
+        VersionAmmendment::None => AGPL_3_NONE,
+        VersionAmmendment::OrLater => AGPL_3_OR_LATER,
+        VersionAmmendment::Only => AGPL_3_ONLY,
+    };
+    let (year, fullname, program, version, description) = get_basics(true);
     let mut handlebars = Handlebars::new();
     let comment = generate_comment(
         &mut handlebars,
@@ -44,7 +54,6 @@ pub fn generate_agpl_license(version: VersionAmmendment) -> LicenseTexts {
     let alt = if needs_secondary_text {
         Some(generate_secondary_text(
             &mut handlebars,
-            year,
             fullname.clone(),
             program.clone(),
             description.clone(),
@@ -65,15 +74,11 @@ pub fn generate_agpl_license(version: VersionAmmendment) -> LicenseTexts {
 #[tracing::instrument]
 pub fn generate_gpl_license(version: VersionAmmendment) -> LicenseTexts {
     let ident = match version {
-        VersionAmmendment::None => GPL_3_OR_LATER,
+        VersionAmmendment::None => GPL_3_NONE,
         VersionAmmendment::OrLater => GPL_3_OR_LATER,
         VersionAmmendment::Only => GPL_3_ONLY,
     };
-    let year: u16 = prompt("Enter the copyright year");
-    let fullname: String = prompt("Enter the full name of the copyright holder");
-    let program: String = prompt("Enter the name of the program");
-    let version: Option<String> = prompt_optional("Enter the version of the program");
-    let description: String = prompt("Enter a short description of the program (5-10 words)");
+    let (year, fullname, program, version, description) = get_basics(true);
     let mut handlebars = Handlebars::new();
     let comment = generate_comment(
         &mut handlebars,
@@ -100,7 +105,6 @@ pub fn generate_gpl_license(version: VersionAmmendment) -> LicenseTexts {
     let alt = if needs_secondary_text {
         Some(generate_secondary_text(
             &mut handlebars,
-            year,
             fullname.clone(),
             program.clone(),
             description.clone(),
@@ -121,15 +125,11 @@ pub fn generate_gpl_license(version: VersionAmmendment) -> LicenseTexts {
 #[tracing::instrument]
 pub fn generate_lgpl_license(version: VersionAmmendment) -> LicenseTexts {
     let ident = match version {
-        VersionAmmendment::None => LGPL_3_OR_LATER,
+        VersionAmmendment::None => LGPL_3_NONE,
         VersionAmmendment::OrLater => LGPL_3_OR_LATER,
         VersionAmmendment::Only => LGPL_3_ONLY,
     };
-    let year: u16 = prompt("Enter the copyright year");
-    let fullname: String = prompt("Enter the full name of the copyright holder");
-    let program: String = prompt("Enter the name of the program");
-    let version: Option<String> = prompt_optional("Enter the version of the program");
-    let description: String = prompt("Enter a short description of the program (5-10 words)");
+    let (year, fullname, program, _, description) = get_basics(false);
     let mut handlebars = Handlebars::new();
     let comment = generate_comment(
         &mut handlebars,
@@ -138,25 +138,11 @@ pub fn generate_lgpl_license(version: VersionAmmendment) -> LicenseTexts {
         description.clone(),
         ident.clone(),
     );
-    let is_interactive =
-        prompt_bool("Is this program interactive? (e.g., a website, CLI tool, etc.)");
-    let interactive = if is_interactive {
-        Some(generate_interact(
-            &mut handlebars,
-            year,
-            fullname.clone(),
-            program.clone(),
-            version,
-        ))
-    } else {
-        None
-    };
     let needs_secondary_text =
         prompt_bool("Do you need a signed release for this software? (e.g., for an organization)");
     let alt = if needs_secondary_text {
         Some(generate_secondary_text(
             &mut handlebars,
-            year,
             fullname.clone(),
             program.clone(),
             description.clone(),
@@ -169,7 +155,7 @@ pub fn generate_lgpl_license(version: VersionAmmendment) -> LicenseTexts {
     LicenseTexts {
         text,
         comment,
-        interactive,
+        interactive: None,
         alt,
     }
 }
@@ -237,19 +223,19 @@ pub fn generate_comment(
 #[tracing::instrument]
 pub fn generate_secondary_text(
     handlebars: &mut Handlebars,
-    year: u16,
     fullname: String,
     program: String,
     description: String,
     license: GnuLicenseIdent,
 ) -> String {
-    let oragnization: String = prompt("Enter the name of the organization: ");
-    let signer: String = prompt("Enter the name of the signer from the organization: ");
-    let day: u8 = prompt("Enter the day of the signing: ");
-    let month: String = prompt("Enter the month of the signing: ");
-    let position: String = prompt("Enter the position within the organization of the signer: ");
+    let organization: String = prompt("Enter the name of the organization");
+    let signer: String = prompt("Enter the name of the signer from the organization");
+    let position: String = prompt("Enter the position within the organization of the signer");
+    let day: u8 = prompt("Enter the day of the signing");
+    let month: String = prompt("Enter the month of the signing");
+    let year: u16 = prompt("Enter the year of the signing");
     let license = GnuLicenseSecondaryTemplate {
-        oragnization,
+        organization,
         program,
         description,
         fullname,
@@ -297,7 +283,7 @@ pub fn generate_text(handlebars: &mut Handlebars, license: GnuLicenseText) -> St
 
 #[derive(Serialize, Debug)]
 pub struct GnuLicenseSecondaryTemplate {
-    pub oragnization: String,
+    pub organization: String,
     pub program: String,
     pub description: String,
     pub fullname: String,
@@ -310,7 +296,7 @@ pub struct GnuLicenseSecondaryTemplate {
 }
 
 pub const GNU_SECONDARY: &'static str = r#"
-{{orgaization}}, hereby disclaims all copyright interest in the {{license.scope}}
+{{organization}}, hereby disclaims all copyright interest in the {{license.scope}}
 '{{program}}' ({{description}}) written by {{fullname}}.
 
 released by {{signer}}, {{day}} {{month}} {{year}}
@@ -323,6 +309,7 @@ pub struct GnuLicenseIdent {
     pub name: &'static str,
     pub constraint: &'static str,
     pub scope: &'static str,
+    pub spdx: &'static str,
 }
 
 #[derive(Serialize, Debug)]
@@ -341,40 +328,67 @@ software, and you are welcome to redistribute it under
 certain conditions.
 "#;
 
+pub const GPL_3_NONE: GnuLicenseIdent = GnuLicenseIdent {
+    name: "GNU General Public License",
+    constraint: "either version 3 of the License, or (at your option) any later version",
+    scope: "program",
+    spdx: "GPL-3.0",
+};
+
 pub const GPL_3_OR_LATER: GnuLicenseIdent = GnuLicenseIdent {
     name: "GNU General Public License",
     constraint: "either version 3 of the License, or (at your option) any later version",
     scope: "program",
+    spdx: "GPL-3.0-or-later",
 };
 
 pub const GPL_3_ONLY: GnuLicenseIdent = GnuLicenseIdent {
     name: "GNU General Public License",
     constraint: "only version 3 of the License",
     scope: "program",
+    spdx: "GPL-3.0-only",
+};
+
+pub const AGPL_3_NONE: GnuLicenseIdent = GnuLicenseIdent {
+    name: "GNU Affero General Public License",
+    constraint: "either version 3 of the License, or (at your option) any later version",
+    scope: "program",
+    spdx: "AGPL-3.0",
 };
 
 pub const AGPL_3_OR_LATER: GnuLicenseIdent = GnuLicenseIdent {
     name: "GNU Affero General Public License",
     constraint: "either version 3 of the License, or (at your option) any later version",
     scope: "program",
+    spdx: "AGPL-3.0-or-later",
 };
 
 pub const AGPL_3_ONLY: GnuLicenseIdent = GnuLicenseIdent {
     name: "GNU Affero General Public License",
     constraint: "only version 3 of the License",
     scope: "program",
+    spdx: "AGPL-3.0-only",
+};
+
+pub const LGPL_3_NONE: GnuLicenseIdent = GnuLicenseIdent {
+    name: "GNU Lesser General Public License",
+    constraint: "either version 3 of the License, or (at your option) any later version",
+    scope: "library",
+    spdx: "LGPL-3.0",
 };
 
 pub const LGPL_3_OR_LATER: GnuLicenseIdent = GnuLicenseIdent {
     name: "GNU Lesser General Public License",
     constraint: "either version 3 of the License, or (at your option) any later version",
     scope: "library",
+    spdx: "LGPL-3.0-or-later",
 };
 
 pub const LGPL_3_ONLY: GnuLicenseIdent = GnuLicenseIdent {
     name: "GNU Lesser General Public License",
     constraint: "only version 3 of the License",
     scope: "library",
+    spdx: "LGPL-3.0-only",
 };
 
 #[derive(Serialize, Debug)]
@@ -385,7 +399,9 @@ pub struct GnuLicenseCommentTemplate {
     pub license: GnuLicenseIdent,
 }
 
-pub const GNU_COMMENT: &'static str = r#"{{description}}
+pub const GNU_COMMENT: &'static str = r#"SPDX-License-Identifier: {{license.spdx}}
+
+{{description}}
 
 Copyright (C) {{year}} {{fullname}}
 
