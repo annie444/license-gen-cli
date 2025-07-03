@@ -10,7 +10,7 @@ pub fn generate_cddl_license() -> LicenseTexts {
     }
 }
 
-pub const CDDL: &'static str = r#"COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
+pub const CDDL: &str = r#"COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0
 
 1. Definitions.
 

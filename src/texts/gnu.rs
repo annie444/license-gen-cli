@@ -295,7 +295,7 @@ pub struct GnuLicenseSecondaryTemplate {
     pub license: GnuLicenseIdent,
 }
 
-pub const GNU_SECONDARY: &'static str = r#"
+pub const GNU_SECONDARY: &str = r#"
 {{organization}}, hereby disclaims all copyright interest in the {{license.scope}}
 '{{program}}' ({{description}}) written by {{fullname}}.
 
@@ -320,7 +320,7 @@ pub struct GplLicenseInteractTemplate {
     pub program: String,
 }
 
-pub const GPL_INTERACT: &'static str = r#"
+pub const GPL_INTERACT: &str = r#"
 {{program}}{{#if version}} version {{version}}{{/if}}, Copyright (C) {{year}} {{fullname}} 
 
 {{program}} comes with ABSOLUTELY NO WARRANTY. This is free 
@@ -399,7 +399,7 @@ pub struct GnuLicenseCommentTemplate {
     pub license: GnuLicenseIdent,
 }
 
-pub const GNU_COMMENT: &'static str = r#"SPDX-License-Identifier: {{license.spdx}}
+pub const GNU_COMMENT: &str = r#"SPDX-License-Identifier: {{license.spdx}}
 
 {{description}}
 
@@ -785,7 +785,7 @@ Library.
     general: GPL,
 };
 
-pub const GNU_TEXT: &'static str = r#"{{license.header}}
+pub const GNU_TEXT: &str = r#"{{license.header}}
 {{license.general.title}}
                        Version {{license.general.version}}, {{license.general.day}} {{license.general.month}} {{license.general.year}}
 

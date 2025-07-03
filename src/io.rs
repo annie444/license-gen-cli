@@ -126,6 +126,7 @@ fn write_comment<P: AsRef<Path> + std::fmt::Debug>(
     let mut tmp_file = OpenOptions::new()
         .write(true)
         .create(true)
+        .truncate(true)
         .open(&tmp_path)?;
     for line in comment_block.lines() {
         writeln!(tmp_file, "{} {}", comment, line)?;
@@ -141,11 +142,7 @@ fn write_comment<P: AsRef<Path> + std::fmt::Debug>(
 }
 
 #[tracing::instrument]
-fn iterate_dir<P: AsRef<Path> + std::fmt::Debug>(
-    path: P,
-    comment: &str,
-    comment_block: &str,
-) -> () {
+fn iterate_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, comment: &str, comment_block: &str) {
     let files = match path.as_ref().read_dir() {
         Ok(files) => files,
         Err(e) => {

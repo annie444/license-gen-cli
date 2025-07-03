@@ -55,7 +55,7 @@ pub struct EplLicenseSecondaryTemplate {
     pub licenses: Vec<String>,
 }
 
-pub const EPL_SECONDARY: &'static str = r#"This Source Code may also be made available under the following 
+pub const EPL_SECONDARY: &str = r#"This Source Code may also be made available under the following 
 Secondary Licenses when the conditions for such availability set forth 
 in the Eclipse Public License, v. 2.0 are satisfied:
 {{#each licenses}}
@@ -63,7 +63,7 @@ in the Eclipse Public License, v. 2.0 are satisfied:
 {{/each}}
 "#;
 
-pub const EPL_TEXT: &'static str = r#"Eclipse Public License - v 2.0
+pub const EPL_TEXT: &str = r#"Eclipse Public License - v 2.0
 
     THE ACCOMPANYING PROGRAM IS PROVIDED UNDER THE TERMS OF THIS ECLIPSE
     PUBLIC LICENSE ("AGREEMENT"). ANY USE, REPRODUCTION OR DISTRIBUTION

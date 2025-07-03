@@ -4,7 +4,6 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum VersionAmmendment {
-    ///
     None,
     /// -only
     Only,
@@ -24,7 +23,6 @@ impl fmt::Display for VersionAmmendment {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum BsdAmmendment {
-    ///
     None,
     /// -Attribution
     Attribution,

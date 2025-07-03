@@ -43,7 +43,7 @@ pub struct MitLicenseTemplate {
     pub fullname: String,
 }
 
-pub const MIT: &'static str = r#"MIT License
+pub const MIT: &str = r#"MIT License
 
 Copyright (c) {{year}} {{fullname}}
 

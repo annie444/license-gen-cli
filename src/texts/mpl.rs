@@ -10,13 +10,13 @@ pub fn generate_mpl_license() -> LicenseTexts {
     }
 }
 
-pub const MPL_COMMENT: &'static str = r#"SPDX-License-Identifier: MPL-2.0
+pub const MPL_COMMENT: &str = r#"SPDX-License-Identifier: MPL-2.0
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 "#;
 
-pub const MPL_TEXT: &'static str = r#"Mozilla Public License Version 2.0
+pub const MPL_TEXT: &str = r#"Mozilla Public License Version 2.0
 ==================================
 
 1. Definitions

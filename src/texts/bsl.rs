@@ -10,7 +10,7 @@ pub fn generate_bsl_license() -> LicenseTexts {
     }
 }
 
-pub const BSL_COMMENT: &'static str = r#"SPDX-License-Identifier: BSL-1.0
+pub const BSL_COMMENT: &str = r#"SPDX-License-Identifier: BSL-1.0
 
 Permission is hereby granted, free of charge, to any person 
 or organization obtaining a copy of the software and 
@@ -38,7 +38,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 "#;
 
-pub const BSL_TEXT: &'static str = r#"Boost Software License - Version 1.0 - August 17th, 2003
+pub const BSL_TEXT: &str = r#"Boost Software License - Version 1.0 - August 17th, 2003
 
 Permission is hereby granted, free of charge, to any person or organization
 obtaining a copy of the software and accompanying documentation covered by
