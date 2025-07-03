@@ -31,9 +31,9 @@ pub struct Cli {
 
     /// The path to the source files to add the license headers to.
     /// If '--add-comment' is set:
-    /// - and this points to a file, the license header will be added
+    /// (A) and this points to a file, the license header will be added
     /// to that file.
-    /// - and this points to a directory, the license header will be added
+    /// (B) and this points to a directory, the license header will be added
     /// to all files in that directory recursively.
     #[arg(short, long, default_value = "src")]
     pub source_path: PathBuf,
