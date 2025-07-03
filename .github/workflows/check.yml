@@ -62,4 +62,4 @@ jobs:
         uses: actions-rust-lang/rustfmt@v1
 
       - name: Run cargo-deny
-        uses: EmbarkStudios/cargo-deny-action@v1
+        uses: EmbarkStudios/cargo-deny-action@v2
