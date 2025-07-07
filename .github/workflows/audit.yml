@@ -22,12 +22,16 @@ env:
 
 jobs:
   audit:
+    name: Audit Dependencies
     runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -35,5 +39,5 @@ jobs:
           toolchain: stable
           cache-key: ${{ runner.os }}-stable
 
-      - uses: actions-rust-lang/audit@v1
-        name: Audit Rust Dependencies
+      - name: Audit Rust Dependencies
+        uses: actions-rust-lang/audit@v1

@@ -9,6 +9,26 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache-key: ${{ runner.os }}-stable
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
   test:
     name: Test
     runs-on: ubuntu-latest
@@ -19,7 +39,10 @@ jobs:
           - beta
           - nightly
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
@@ -43,7 +66,10 @@ jobs:
           - beta
           - nightly
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Rust
         uses: actions-rust-lang/setup-rust-toolchain@v1
