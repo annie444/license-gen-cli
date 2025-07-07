@@ -55,8 +55,7 @@ impl fmt::Display for LicenseTexts {
 
         write!(
             f,
-            "Text: '{}', Comment: '{}', Alternative Text: '{}', Interactive Text: '{}'",
-            text, comment, alt, interactive
+            "Text: '{text}', Comment: '{comment}', Alternative Text: '{alt}', Interactive Text: '{interactive}'",
         )
     }
 }

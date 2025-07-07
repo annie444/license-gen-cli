@@ -25,9 +25,8 @@ pub fn output(
         (true, true, _, true) => {
             if let Err(e) = write_comment(comment, &license.comment, &source_path) {
                 ceprintln!(
-                    "<bold><red>Failed to write comment for file {}</></>: {}",
+                    "<bold><red>Failed to write comment for file {}</></>: {e}",
                     source_path.display(),
-                    e
                 );
                 return;
             }
@@ -63,9 +62,8 @@ pub fn output(
         Ok(file) => file,
         Err(e) => {
             ceprintln!(
-                "<bold><red>Failed to open license file {}</></>: {}",
+                "<bold><red>Failed to open license file {}</></>: {e}",
                 output.display(),
-                e
             );
             return;
         }
@@ -75,9 +73,8 @@ pub fn output(
         Ok(_) => (),
         Err(e) => {
             ceprintln!(
-                "<bold><red>Failed to write license text to {}</></>: {}",
+                "<bold><red>Failed to write license text to {}</></>: {e}",
                 output.display(),
-                e
             );
             return;
         }
@@ -85,9 +82,8 @@ pub fn output(
 
     if let Err(e) = license_file.flush() {
         ceprintln!(
-            "<bold><red>Failed to flush license file {}</></>: {}",
+            "<bold><red>Failed to flush license file {}</></>: {e}",
             output.display(),
-            e
         );
         return;
     };
@@ -101,7 +97,7 @@ for where it goes. Another common place is to add it as a comment at the top of 
 files or to the readme.</>
 "#,
         );
-        println!("{}", alt);
+        println!("{alt}");
     };
 
     if let Some(interactive) = &license.interactive {
@@ -112,7 +108,7 @@ This needs to be easily accessible to users, such as in a help command, at the s
 a footer section, or in an about section.</>
 "#,
         );
-        println!("{}", interactive);
+        println!("{interactive}");
     };
 }
 
@@ -129,7 +125,7 @@ fn write_comment<P: AsRef<Path> + std::fmt::Debug>(
         .truncate(true)
         .open(&tmp_path)?;
     for line in comment_block.lines() {
-        writeln!(tmp_file, "{} {}", comment, line)?;
+        writeln!(tmp_file, "{comment} {line}")?;
     }
     let src = OpenOptions::new().read(true).open(&output_file)?;
     for line in io::BufReader::new(src).lines() {
@@ -147,9 +143,8 @@ fn iterate_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, comment: &str, comment
         Ok(files) => files,
         Err(e) => {
             ceprintln!(
-                "<bold><red>Failed to read directory {}</></>: {}",
+                "<bold><red>Failed to read directory {}</></>: {e}",
                 path.as_ref().display(),
-                e
             );
             return;
         }
@@ -159,18 +154,16 @@ fn iterate_dir<P: AsRef<Path> + std::fmt::Debug>(path: P, comment: &str, comment
             Ok(entry) => {
                 if let Err(e) = write_comment(comment, comment_block, entry.path()) {
                     ceprintln!(
-                        "<bold><red>Failed to write comment for file {}</></>: {}",
+                        "<bold><red>Failed to write comment for file {}</></>: {e}",
                         entry.path().display(),
-                        e
                     );
                     return;
                 }
             }
             Err(e) => {
                 ceprintln!(
-                    "<bold><red>Failed to read entry in directory {}</></>: {}",
+                    "<bold><red>Failed to read entry in directory {}</></>: {e}",
                     path.as_ref().display(),
-                    e
                 );
                 return;
             }
@@ -188,7 +181,7 @@ where
         match io::stdout().flush() {
             Ok(_) => (),
             Err(e) => {
-                ceprintln!("<bold><red>Failed to flush stdout</></>: {}", e);
+                ceprintln!("<bold><red>Failed to flush stdout</></>: {e}");
                 process::exit(1);
             }
         };
@@ -197,7 +190,7 @@ where
         match io::stdin().read_line(&mut input) {
             Ok(_) => (),
             Err(e) => {
-                ceprintln!("<bold><red>Failed to read line</></>: {}", e);
+                ceprintln!("<bold><red>Failed to read line</></>: {e}");
                 process::exit(1);
             }
         }
@@ -207,7 +200,7 @@ where
         match trimmed_input.parse::<T>() {
             Ok(value) => return value,
             Err(_) => {
-                ceprintln!("<bold><yellow>Invalid input</></>: {}.", trimmed_input);
+                ceprintln!("<bold><yellow>Invalid input</></>: {trimmed_input}.");
                 ceprintln!("<bold><yellow>Please try again.</></>");
             }
         }
@@ -220,11 +213,11 @@ where
     T: FromStr,
 {
     loop {
-        cprint!("<bold><cyan>{}</></> <dim>(<italics>optional</>)</>: ", q);
+        cprint!("<bold><cyan>{q}</></> <dim>(<italics>optional</>)</>: ");
         match io::stdout().flush() {
             Ok(_) => (),
             Err(e) => {
-                ceprintln!("<bold><red>Failed to flush stdout</></>: {}", e);
+                ceprintln!("<bold><red>Failed to flush stdout</></>: {e}");
                 process::exit(1);
             }
         };
@@ -233,7 +226,7 @@ where
         match io::stdin().read_line(&mut input) {
             Ok(_) => (),
             Err(e) => {
-                ceprintln!("<bold><red>Failed to read line</></>: {}", e);
+                ceprintln!("<bold><red>Failed to read line</></>: {e}");
                 process::exit(1);
             }
         }
@@ -246,7 +239,7 @@ where
             match trimmed_input.parse::<T>() {
                 Ok(value) => return Some(value),
                 Err(_) => {
-                    ceprintln!("<bold><yellow>Invalid input</></>: {}.", trimmed_input);
+                    ceprintln!("<bold><yellow>Invalid input</></>: {trimmed_input}.");
                     ceprintln!("<bold><yellow>Please try again or leave blank for none.</></>");
                 }
             }
@@ -258,8 +251,7 @@ where
 pub fn prompt_bool(q: &str) -> bool {
     loop {
         let response = prompt::<String>(&cformat!(
-            "{} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
-            q
+            "{q} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
         ));
         match response.to_lowercase().as_str() {
             "yes" | "y" | "true" | "t" => return true,
@@ -275,8 +267,7 @@ pub fn prompt_bool(q: &str) -> bool {
 pub fn prompt_optional_bool(q: &str) -> Option<bool> {
     loop {
         let response = prompt_optional::<String>(&cformat!(
-            "{} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
-            q
+            "{q} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
         ));
         match response {
             Some(r) => match r.to_lowercase().as_str() {

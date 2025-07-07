@@ -62,16 +62,16 @@ impl fmt::Display for Licenses {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Licenses::Mit => write!(f, "MIT"),
-            Licenses::Agpl3(a) => write!(f, "AGPL-3.0").and_then(|_| write!(f, "{}", a)),
-            Licenses::Gpl3(a) => write!(f, "GPL-3.0").and_then(|_| write!(f, "{}", a)),
-            Licenses::Lgpl3(a) => write!(f, "LGPL-3.0").and_then(|_| write!(f, "{}", a)),
+            Licenses::Agpl3(a) => write!(f, "AGPL-3.0").and_then(|_| write!(f, "{a}")),
+            Licenses::Gpl3(a) => write!(f, "GPL-3.0").and_then(|_| write!(f, "{a}")),
+            Licenses::Lgpl3(a) => write!(f, "LGPL-3.0").and_then(|_| write!(f, "{a}")),
             Licenses::Apache2 => write!(f, "Apache-2.0"),
             Licenses::Bsl1 => write!(f, "BSL-1.0"),
             Licenses::Unlicense => write!(f, "Unlicense"),
             Licenses::Cddl1 => write!(f, "CDDL-1.0"),
             Licenses::Epl2 => write!(f, "EPL-2.0"),
             Licenses::Mpl2 => write!(f, "MPL-2.0"),
-            Licenses::Bsd3Clause(a) => write!(f, "BSD-3-Clause").and_then(|_| write!(f, "{}", a)),
+            Licenses::Bsd3Clause(a) => write!(f, "BSD-3-Clause").and_then(|_| write!(f, "{a}")),
         }
     }
 }
