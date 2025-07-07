@@ -3,4 +3,3 @@ fn main() {
     // The actual tests are in the `tests/license_tests.rs` file.
     println!("Run the tests using `cargo test` to execute the license tests.");
 }
-
