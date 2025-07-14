@@ -10,7 +10,11 @@ on:
       - "**/Cargo.lock"
       # Run if the configuration file changes
       - "**/audit.toml"
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
   # Rerun periodically to pick up new advisories
   schedule:
     - cron: "0 0 * * *"
