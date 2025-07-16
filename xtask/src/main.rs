@@ -87,6 +87,10 @@ impl<'a> Status<'a> {
         self.failed.borrow_mut().push(target);
     }
 
+    pub fn ok(&self) -> bool {
+        self.failed.borrow().is_empty()
+    }
+
     pub fn report(&self) {
         println!();
         cprintln!("<bold>Build succeeded for targets:</>");
@@ -166,6 +170,9 @@ fn main() {
         }
     }
     status.report();
+    if !status.ok() {
+        std::process::exit(1);
+    }
 }
 
 #[instrument]
