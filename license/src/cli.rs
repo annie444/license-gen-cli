@@ -1,11 +1,8 @@
+use crate::license;
 use clap::builder::styling::{AnsiColor, Effects, Styles};
 use clap::{Parser, value_parser};
 use clap_verbosity_flag::Verbosity;
 use std::path::PathBuf;
-
-pub mod io;
-pub mod license;
-pub mod texts;
 
 pub const STYLES: Styles = Styles::styled()
     .header(AnsiColor::Green.on_default().effects(Effects::BOLD))
@@ -18,7 +15,7 @@ pub const STYLES: Styles = Styles::styled()
 
 /// Command line interface for generating license texts.
 #[derive(Parser, Debug)]
-#[command(name = "license",author, version, about, long_about = None, styles = STYLES)]
+#[command(name = "license", author, version, about, long_about = None, styles = STYLES)]
 pub struct Cli {
     /// Whether to add the license comment headers to the
     /// source files. If this is not set, the program will
@@ -50,24 +47,4 @@ pub struct Cli {
     /// The license to generate text for.
     #[arg(value_parser = value_parser!(license::Licenses))]
     pub license: license::Licenses,
-}
-
-fn main() {
-    let cli = Cli::parse();
-    let Cli {
-        add_comment,
-        comment,
-        source_path,
-        output,
-        license,
-        verbosity,
-    } = cli;
-
-    tracing_subscriber::fmt().with_max_level(verbosity).init();
-
-    // Here you would typically call a function to handle the CLI arguments,
-    // such as generating the license text based on the provided options.
-    // For example:
-    let text = license::generate_license_text(&license);
-    io::output(&text, add_comment, &comment, source_path, output);
 }

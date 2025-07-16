@@ -1,0 +1,5 @@
+[alias]
+xtask = "run --package xtask --"
+license = "run --package license-gen-bin --"
+xtask-add = "add --package xtask"
+license-add = "add --package license-gen-bin"

@@ -1,7 +1,11 @@
 version = "1.0.0"
 
 [[files]]
-file = "Cargo.toml"
+file = "license/Cargo.toml"
+expr = 'version = "(.*)"'
+
+[[files]]
+file = "xtask/Cargo.toml"
 expr = 'version = "(.*)"'
 
 [[files]]
