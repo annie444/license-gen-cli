@@ -110,6 +110,10 @@ jobs:
 
       - name: Install cargo cross
         run: |
+          export RUSTDOCFLAGS=""
+          export CARGO_ENCODED_RUSTDOCFLAGS=""
+          export RUSTFLAGS="" 
+          export CARGO_ENCODED_RUSTFLAGS=""
           cargo install cross --git https://github.com/cross-rs/cross
           cargo install git-cliff
 
