@@ -118,6 +118,7 @@ fn main() {
 
     ctrlc::set_handler(move || {
         STATUS.lock().unwrap().report();
+        std::process::exit(2);
     })
     .expect("Failed to set Ctrl-C handler");
 
