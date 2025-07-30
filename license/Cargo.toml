@@ -2,7 +2,7 @@
 name = "license-gen-bin"
 version = "1.0.0"
 edition = "2024"
-authors = ["Annie Ehler <annie.ehler.4@gmail.com"]
+authors = ["Annie Ehler <annie.ehler.4@gmail.com>"]
 description = "A command line tool for generating license files."
 documentation = "https://github.com/annie444/license-gen-cli"
 readme = "README.md"
