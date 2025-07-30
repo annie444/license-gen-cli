@@ -5,13 +5,13 @@ edition = "2024"
 authors = ["Annie Ehler <annie.ehler.4@gmail.com>"]
 description = "A command line tool for generating license files."
 documentation = "https://github.com/annie444/license-gen-cli"
-readme = "README.md"
+readme = "../README.md"
 homepage = "https://github.com/annie444/license-gen-cli"
 repository = "https://github.com/annie444/license-gen-cli"
 license = "MIT OR Apache-2.0"
 keywords = ["license", "generator", "command line", "tool"]
 categories = ["command-line-utilities", "development-tools", "config"]
-include = ["src/**", "README.md", "LICENSE"]
+include = ["src/**", "../README.md", "../LICENSE.Apache-2.0", "../LICENSE.MIT"]
 default-run = "license"
 autobins = false
 
