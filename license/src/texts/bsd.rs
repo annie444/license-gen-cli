@@ -7,6 +7,32 @@ use serde::Serialize;
 use std::process;
 
 #[tracing::instrument]
+fn register_templ(partial: BsdLicenseText, license: &BsdLicenseTemplate) -> String {
+    let mut handlebars = Handlebars::new();
+    match handlebars.register_template_string("bsd_license", TEXT) {
+        Ok(_) => {}
+        Err(e) => {
+            ceprintln!("<bold><red>Error registering template</></>: {}", e);
+            process::exit(1);
+        }
+    }
+    match handlebars.register_partial("fourth_partial", partial.fourth) {
+        Ok(_) => {}
+        Err(e) => {
+            ceprintln!("<bold><red>Error registering partial</></>: {}", e);
+            process::exit(1);
+        }
+    }
+    match handlebars.render("bsd_license", &license) {
+        Ok(t) => t,
+        Err(e) => {
+            ceprintln!("<bold><red>Error rendering template</></>: {}", e);
+            process::exit(1);
+        }
+    }
+}
+
+#[tracing::instrument]
 pub fn generate_bsd_license(sublicense: BsdAmmendment) -> LicenseTexts {
     let year: u16 = prompt("Enter the copyright year");
     let fullname: String = prompt("Enter the full name of the copyright holder");
@@ -27,28 +53,7 @@ pub fn generate_base_license(year: u16, fullname: String) -> LicenseTexts {
         website: None,
         license: NONE,
     };
-    let mut handlebars = Handlebars::new();
-    match handlebars.register_template_string("bsd_license", TEXT) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering template</></>: {}", e);
-            process::exit(1);
-        }
-    }
-    match handlebars.register_partial("fourth_partial", NONE.fourth) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering partial</></>: {}", e);
-            process::exit(1);
-        }
-    }
-    let text = match handlebars.render("bsd_license", &license) {
-        Ok(t) => t,
-        Err(e) => {
-            ceprintln!("<bold><red>Error rendering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
+    let text = register_templ(NONE, &license);
 
     LicenseTexts {
         text,
@@ -70,28 +75,7 @@ pub fn generate_attribution_license(year: u16, fullname: String) -> LicenseTexts
         website,
         license: ATTRIBUTION,
     };
-    let mut handlebars = Handlebars::new();
-    match handlebars.register_template_string("bsd_license", TEXT) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering template</></>: {}", e);
-            process::exit(1);
-        }
-    }
-    match handlebars.register_partial("fourth_partial", ATTRIBUTION.fourth) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering partial</></>: {}", e);
-            process::exit(1);
-        }
-    }
-    let text = match handlebars.render("bsd_license", &license) {
-        Ok(t) => t,
-        Err(e) => {
-            ceprintln!("<bold><red>Error rendering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
+    let text = register_templ(ATTRIBUTION, &license);
 
     LicenseTexts {
         text,
@@ -110,28 +94,7 @@ pub fn generate_modification_license(year: u16, fullname: String) -> LicenseText
         website: None,
         license: MODIFICATION,
     };
-    let mut handlebars = Handlebars::new();
-    match handlebars.register_template_string("bsd_license", TEXT) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
-    match handlebars.register_partial("fourth_partial", MODIFICATION.fourth) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering partial</></>: {}", e);
-            process::exit(1);
-        }
-    };
-    let text = match handlebars.render("bsd_license", &license) {
-        Ok(t) => t,
-        Err(e) => {
-            ceprintln!("<bold><red>Error rendering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
+    let text = register_templ(MODIFICATION, &license);
 
     LicenseTexts {
         text,
@@ -150,28 +113,7 @@ pub fn generate_no_military_license(year: u16, fullname: String) -> LicenseTexts
         website: None,
         license: NO_MILITARY,
     };
-    let mut handlebars = Handlebars::new();
-    match handlebars.register_template_string("bsd_license", TEXT) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
-    match handlebars.register_partial("fourth_partial", NO_MILITARY.fourth) {
-        Ok(_) => {}
-        Err(e) => {
-            ceprintln!("<bold><red>Error registering partial</></>: {}", e);
-            process::exit(1);
-        }
-    };
-    let text = match handlebars.render("bsd_license", &license) {
-        Ok(t) => t,
-        Err(e) => {
-            ceprintln!("<bold><red>Error rendering template</></>: {}", e);
-            process::exit(1);
-        }
-    };
+    let text = register_templ(NO_MILITARY, &license);
 
     LicenseTexts {
         text,
@@ -181,7 +123,7 @@ pub fn generate_no_military_license(year: u16, fullname: String) -> LicenseTexts
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct BsdLicenseTemplate {
     pub year: u16,
     pub fullname: String,
@@ -190,7 +132,7 @@ pub struct BsdLicenseTemplate {
     pub license: BsdLicenseText,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct BsdLicenseText {
     pub fourth: &'static str,
     pub postamble: &'static str,

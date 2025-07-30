@@ -1,10 +1,9 @@
 name: Release
 
 on:
-  release:
-    types:
-      - created
-
+  push:
+    tags:
+      - "v*.*.*"
 env:
   CARGO_TERM_COLOR: always
 
@@ -59,8 +58,8 @@ jobs:
       - name: Test
         run: cargo test --release --verbose
 
-  publish:
-    name: Publish package
+  publish-crate:
+    name: Publish package to Crates.io
     runs-on: ubuntu-latest
     needs:
       - test-ubuntu
@@ -82,7 +81,55 @@ jobs:
         run: cargo build --release --verbose
 
       - name: "Package for crates.io"
-        run: cargo package # publishes a package as a tarball
+        run: cargo package --allow-dirty
 
       - name: "Publish to crates.io"
-        run: cargo publish # publishes the crate
+        run: cargo publish --allow-dirty
+
+  publish-github:
+    name: Publish to GitHub
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    needs:
+      - test-ubuntu
+      - test-macos
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          toolchain: stable
+          cache-key: ${{ runner.os }}-stable
+
+      - name: Setup Podman
+        shell: bash
+        run: sudo apt-get install -y podman qemu-user-static
+
+      - name: Install cargo cross
+        run: |
+          cargo install cross --git https://github.com/cross-rs/cross
+          cargo install git-cliff
+
+      - name: Build all of the files
+        run: cargo xtask dist
+
+      - name: Generate the changelog
+        shell: bash
+        run: git-cliff --latest
+        env:
+          GIT_CLIFF_PREPEND: CHANGELOG.md
+          GIT_CLIFF_TAG: ${{ github.ref_name }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPO: annie444/license-gen-cli
+
+      - name: Upload to the release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG.md
+          files: |
+            target/*.tar.zst
+            target/sha256sums.txt
+          make_latest: true
