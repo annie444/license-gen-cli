@@ -11,6 +11,7 @@ use std::io::Write;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
+use std::sync::Mutex;
 use tar::{Builder, EntryType, Header, HeaderMode};
 use tracing::{error, info, instrument, warn};
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
@@ -31,13 +32,13 @@ enum XtaskCmds {
     InstallPreCommitHook,
 }
 
-const PROJECT_ROOT: LazyLock<PathBuf> = LazyLock::new(|| {
+static PROJECT_ROOT: LazyLock<PathBuf> = LazyLock::new(|| {
     locate_project_root().unwrap_or_else(|e| {
         error!("Failed to locate project root: {}", e);
         std::process::exit(1);
     })
 });
-const OUT_ENV: LazyLock<String> = LazyLock::new(|| {
+static OUT_ENV: LazyLock<String> = LazyLock::new(|| {
     env::var("OUT_DIR").unwrap_or_else(|e| {
         error!(
             "OUT_DIR environment variable is not set. Received error: {}",
@@ -104,6 +105,8 @@ impl<'a> Status<'a> {
     }
 }
 
+static STATUS: LazyLock<Mutex<Status<'static>>> = LazyLock::new(|| Mutex::new(Status::new()));
+
 type XtaskError = Box<dyn std::error::Error + Send + Sync + 'static>;
 type XtaskResult<T> = Result<T, XtaskError>;
 
@@ -113,49 +116,52 @@ fn main() {
         .with(EnvFilter::from_default_env())
         .init();
 
-    let status = Status::new();
+    ctrlc::set_handler(move || {
+        STATUS.lock().unwrap().report();
+    })
+    .expect("Failed to set Ctrl-C handler");
 
     let cli = XtaskCli::parse();
     match cli.cmd {
         Some(cmd) => match cmd {
             XtaskCmds::Dist(out) => {
                 info!("Building distribution...");
-                dist(out.out_dir, &status);
+                dist(out.out_dir);
             }
             XtaskCmds::Man(out) => {
                 info!("Building manpages...");
                 if let Err(e) = build_manpages(out.out_dir) {
                     warn!("Failed to build manpages: {}", e);
-                    status.fail("manpages");
+                    STATUS.lock().unwrap().fail("manpages");
                 } else {
-                    status.success("manpages");
+                    STATUS.lock().unwrap().success("manpages");
                 }
             }
             XtaskCmds::Completion(out) => {
                 info!("Building completions...");
                 if let Err(e) = build_completion(out.out_dir) {
                     warn!("Failed to build completions: {}", e);
-                    status.fail("completion");
+                    STATUS.lock().unwrap().fail("completion");
                 } else {
-                    status.success("completion");
+                    STATUS.lock().unwrap().success("completion");
                 }
             }
             XtaskCmds::Clean(out) => {
                 info!("Cleaning generated files...");
                 if let Err(e) = clean(out.out_dir, out.all) {
                     warn!("Failed to clean generated files: {}", e);
-                    status.fail("clean");
+                    STATUS.lock().unwrap().fail("clean");
                 } else {
-                    status.success("clean");
+                    STATUS.lock().unwrap().success("clean");
                 }
             }
             XtaskCmds::InstallPreCommitHook => {
                 info!("Installing pre-commit hook...");
                 if let Err(e) = install_pre_commit_hook() {
                     error!("Failed to install pre-commit hook: {}", e);
-                    status.fail("install-pre-commit-hook");
+                    STATUS.lock().unwrap().fail("install-pre-commit-hook");
                 } else {
-                    status.success("install-pre-commit-hook");
+                    STATUS.lock().unwrap().success("install-pre-commit-hook");
                 }
             }
         },
@@ -163,14 +169,13 @@ fn main() {
             info!("Running pre-commit hook...");
             if let Err(e) = run_pre_commit_hook() {
                 error!("Pre-commit hook failed: {}", e);
-                status.fail("pre-commit");
+                STATUS.lock().unwrap().fail("pre-commit");
             } else {
-                status.success("pre-commit");
+                STATUS.lock().unwrap().success("pre-commit");
             }
         }
     }
-    status.report();
-    if !status.ok() {
+    if !STATUS.lock().unwrap().ok() {
         std::process::exit(1);
     }
 }
@@ -237,7 +242,7 @@ fn clean<P: AsRef<Path> + std::fmt::Debug>(dir: P, all: bool) -> XtaskResult<()>
     for out_path in TARGETS
         .iter()
         .chain(
-            vec![
+            [
                 "manpages",
                 "bundle",
                 "bash_completions",
@@ -272,36 +277,36 @@ fn clean<P: AsRef<Path> + std::fmt::Debug>(dir: P, all: bool) -> XtaskResult<()>
 }
 
 #[instrument]
-fn dist<P: AsRef<Path> + std::fmt::Debug>(out: P, status: &Status) {
+fn dist<P: AsRef<Path> + std::fmt::Debug>(out: P) {
     info!("Output directory: {:?}", out.as_ref());
     info!("Generating manpages...");
     build_manpages(&out).unwrap_or_else(|e| {
         warn!("Failed to build manpages: {}", e);
-        status.fail("manpages");
+        STATUS.lock().unwrap().fail("manpages");
     });
     info!("Generating completions...");
     build_completion(&out).unwrap_or_else(|e| {
         warn!("Failed to build completions: {}", e);
-        status.fail("completion");
+        STATUS.lock().unwrap().fail("completion");
     });
     info!("Building targets...");
     for target in TARGETS {
         info!("Building target: {}", target);
         if let Err(e) = build(target) {
             warn!("Failed to build target {}: {}", target, e);
-            status.fail(target);
+            STATUS.lock().unwrap().fail(target);
         } else {
             info!("Successfully built target: {}", target);
-            status.success(target);
+            STATUS.lock().unwrap().success(target);
         }
     }
     info!("Bundling distribution...");
     if let Err(e) = bundle(&out) {
         warn!("Failed to bundle distribution: {}", e);
-        status.fail("bundle");
+        STATUS.lock().unwrap().fail("bundle");
     } else {
         info!("Successfully bundled distribution");
-        status.success("bundle");
+        STATUS.lock().unwrap().success("bundle");
     }
 }
 
@@ -388,7 +393,7 @@ fn completion_dir<P: AsRef<Path> + std::fmt::Debug>(
         clap_complete::Shell::PowerShell => "powershell_completions",
         clap_complete::Shell::Elvish => "elvish_completions",
         _ => {
-            return Err(format!("Unsupported shell: {:?}", shell).into());
+            return Err(format!("Unsupported shell: {shell:?}").into());
         }
     };
     let out = out.as_ref().join(shell);
@@ -474,8 +479,8 @@ fn bundle<P: AsRef<Path> + std::fmt::Debug>(out: P) -> XtaskResult<()> {
             std::fs::copy(src, dir.join(fname))?;
         }
         std::fs::copy(
-            &out.as_ref().join(tgt).join("release").join(&exe),
-            &tgt_dir.join(&exe),
+            out.as_ref().join(tgt).join("release").join(&exe),
+            tgt_dir.join(&exe),
         )?;
         dirs.push(tgt_dir);
     }
@@ -523,7 +528,7 @@ fn bundle<P: AsRef<Path> + std::fmt::Debug>(out: P) -> XtaskResult<()> {
         );
         std::fs::File::create(out.as_ref().join(&tarball))?
             .write_all(&compressor.compress(&tar_builder.into_inner()?)?)?;
-        let mut f = std::fs::File::open(&out.as_ref().join(&tarball))?;
+        let mut f = std::fs::File::open(out.as_ref().join(&tarball))?;
         let mut hasher = Sha256::new();
         std::io::copy(&mut f, &mut hasher)?;
         let hash = hasher.finalize();
