@@ -14,7 +14,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 serde.workspace = true
 clap_complete = { version = "4.5.55", features = ["debug"] }
-clap_mangen = { version = "0.2.28", features = ["debug"] }
+clap_mangen = { version = "0.2.29", features = ["debug"] }
 devx-cmd = "0.5.0"
 devx-pre-commit = "0.5.0"
 zstd = { version = "0.13.3", features = ["zstdmt"] }
