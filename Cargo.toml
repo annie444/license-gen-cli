@@ -9,7 +9,7 @@ tracing-subscriber = { version = "0.3.19", features = [
   "std",
   "registry",
 ] }
-clap = { version = "4.5.42", features = ["derive", "string"] }
+clap = { version = "4.5.45", features = ["derive", "string"] }
 clap-verbosity-flag = { version = "3.0.3", default-features = false, features = [
   "tracing",
 ] }
