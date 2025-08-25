@@ -10,7 +10,7 @@ tracing-subscriber = { version = "0.3.19", features = [
   "registry",
 ] }
 clap = { version = "4.5.42", features = ["derive", "string"] }
-clap-verbosity-flag = { version = "3.0.3", default-features = false, features = [
+clap-verbosity-flag = { version = "3.0.4", default-features = false, features = [
   "tracing",
 ] }
 color-print = "0.3.7"
