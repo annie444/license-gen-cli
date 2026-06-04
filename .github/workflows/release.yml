@@ -78,13 +78,13 @@ jobs:
         run: cargo login ${{ secrets.CRATES_IO }}
 
       - name: Build binaries in "release" mode
-        run: cargo build --release --verbose
+        run: cargo build --package license-gen-bin --release --verbose
 
       - name: "Package for crates.io"
-        run: cargo package --allow-dirty
+        run: cargo package --package license-gen-bin --allow-dirty
 
       - name: "Publish to crates.io"
-        run: cargo publish --allow-dirty
+        run: cargo publish --package license-gen-bin --allow-dirty
 
   publish-github:
     name: Publish to GitHub
