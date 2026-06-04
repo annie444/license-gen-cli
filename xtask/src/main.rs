@@ -234,7 +234,7 @@ fn run_pre_commit_hook() -> XtaskResult<()> {
     Ok(())
 }
 
-const TARGETS: [&str; 14] = [
+const TARGETS: [&str; 12] = [
     "aarch64-unknown-linux-gnu",
     "aarch64-unknown-linux-musl",
     "armv7-unknown-linux-gnueabi",
@@ -247,8 +247,6 @@ const TARGETS: [&str; 14] = [
     "riscv64gc-unknown-linux-musl",
     "x86_64-unknown-linux-gnu",
     "x86_64-unknown-linux-musl",
-    "aarch64-apple-darwin",
-    "x86_64-apple-darwin",
 ];
 
 #[instrument]
