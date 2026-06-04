@@ -269,16 +269,14 @@ pub fn prompt_optional_bool(q: &str) -> Option<bool> {
         let response = prompt_optional::<String>(&cformat!(
             "{q} <dim>(<italics>[<bold>y</bold>]es</italics>/<italics>[<bold>n</bold>]o</italics>)</dim>",
         ));
-        match response {
-            Some(r) => match r.to_lowercase().as_str() {
-                "yes" | "y" | "true" | "t" => return Some(true),
-                "no" | "n" | "false" | "f" => return Some(false),
-                "" => return None,
-                _ => ceprintln!(
-                    "<bold><yellow>Please answer '<italics>yes</>', '<italics>no</>', or <italics>leave blank</> for none.</></>"
-                ),
-            },
-            None => return None,
+        let r = response?;
+        match r.to_lowercase().as_str() {
+            "yes" | "y" | "true" | "t" => return Some(true),
+            "no" | "n" | "false" | "f" => return Some(false),
+            "" => return None,
+            _ => ceprintln!(
+                "<bold><yellow>Please answer '<italics>yes</>', '<italics>no</>', or <italics>leave blank</> for none.</></>"
+            ),
         }
     }
 }

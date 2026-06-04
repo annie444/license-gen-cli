@@ -115,14 +115,10 @@ fn gen_assert_cmd<P: AsRef<std::path::Path>>(lang: Lang, path: P, license: &str)
 }
 
 fn spawn_session(cmd: StdCommand) -> rexpect::session::PtySession {
-    let session = spawn_with_options(
-        cmd,
-        Options {
-            timeout_ms: Some(115),
-            strip_ansi_escape_codes: true,
-        },
-    )
-    .unwrap();
+    let opts = Options::new()
+        .strip_ansi_escape_codes(true)
+        .timeout_ms(Some(115));
+    let session = spawn_with_options(cmd, opts).unwrap();
     session
 }
 

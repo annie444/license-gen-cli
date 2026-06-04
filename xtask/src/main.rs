@@ -1,21 +1,24 @@
-use clap::{Args, CommandFactory, Parser, Subcommand};
-use color_print::cprintln;
-use devx_cmd::{cmd, run};
-use devx_pre_commit::{PreCommitContext, locate_project_root};
-use license_gen_bin::cli::Cli;
-use sha2::{Digest, Sha256};
 use std::cell::RefCell;
 use std::env;
 use std::ffi::OsStr;
-use std::io::Write;
+use std::fs::File;
+use std::io::{Read, Write};
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::sync::LazyLock;
 use std::sync::Mutex;
+
+use clap::{Args, CommandFactory, Parser, Subcommand};
+use color_print::cprintln;
+use devx_cmd::{cmd, run};
+use devx_pre_commit::{PreCommitContext, locate_project_root};
+use sha2::{Digest, Sha256};
 use tar::{Builder, EntryType, Header, HeaderMode};
 use tracing::{error, info, instrument, warn};
 use tracing_subscriber::{EnvFilter, fmt, prelude::*};
 use zstd::bulk::Compressor;
+
+use license_gen_bin::cli::Cli;
 
 #[derive(Parser, Debug, Clone)]
 struct XtaskCli {
@@ -40,11 +43,12 @@ static PROJECT_ROOT: LazyLock<PathBuf> = LazyLock::new(|| {
 });
 static OUT_ENV: LazyLock<String> = LazyLock::new(|| {
     env::var("OUT_DIR").unwrap_or_else(|e| {
-        error!(
-            "OUT_DIR environment variable is not set. Received error: {}",
-            e
-        );
-        PROJECT_ROOT.join("target").to_string_lossy().to_string()
+        env::var_os("OUT_DIR")
+            .map(|s| s.to_string_lossy().to_string())
+            .unwrap_or_else(|| {
+                error!("OUT_DIR environment variable is not set. Received error: {e}",);
+                PROJECT_ROOT.join("target").to_string_lossy().to_string()
+            })
     })
 });
 
@@ -178,6 +182,34 @@ fn main() {
     }
     if !STATUS.lock().unwrap().ok() {
         std::process::exit(1);
+    }
+}
+
+trait FileHash {
+    fn sha256(&mut self) -> XtaskResult<String>;
+}
+
+impl FileHash for File {
+    fn sha256(&mut self) -> XtaskResult<String> {
+        let mut hasher = Sha256::new();
+        let mut buffer = [0u8; 8];
+        loop {
+            match self.read(&mut buffer) {
+                Ok(read_len) => {
+                    if read_len == 0 {
+                        break;
+                    } else {
+                        hasher.update(buffer);
+                    }
+                }
+                Err(e) => {
+                    error!("Failed to read file: {}", e);
+                    return Err(e.into());
+                }
+            }
+        }
+        let hash = hasher.finalize();
+        Ok(hex::encode(hash))
     }
 }
 
@@ -502,12 +534,16 @@ fn bundle<P: AsRef<Path> + std::fmt::Debug>(out: P) -> XtaskResult<()> {
             let file = file?;
             if file.file_type()?.is_file() {
                 let rel_path = file.path().strip_prefix(dir)?.to_owned();
-                let mut f = std::fs::File::open(file.path())?;
-                let mut hasher = Sha256::new();
-                std::io::copy(&mut f, &mut hasher)?;
-                let hash = hasher.finalize();
-                drop(f);
-                hashes.push_str(&format!("{hash:x}  {}\n", rel_path.display()));
+                let mut f = File::open(file.path())?;
+                let hash = f.sha256().map_err(|e| {
+                    error!(
+                        "Failed to compute hash for file {}: {}",
+                        file.path().display(),
+                        e
+                    );
+                    return e;
+                })?;
+                hashes.push_str(&format!("{hash}  {}\n", rel_path.display()));
                 tar_builder.append_path_with_name(
                     file.path(),
                     PathBuf::from(format!("license/{}", rel_path.display())),
@@ -530,10 +566,15 @@ fn bundle<P: AsRef<Path> + std::fmt::Debug>(out: P) -> XtaskResult<()> {
         std::fs::File::create(out.as_ref().join(&tarball))?
             .write_all(&compressor.compress(&tar_builder.into_inner()?)?)?;
         let mut f = std::fs::File::open(out.as_ref().join(&tarball))?;
-        let mut hasher = Sha256::new();
-        std::io::copy(&mut f, &mut hasher)?;
-        let hash = hasher.finalize();
-        let tar_hash = format!("{hash:x}  {tarball}\n");
+        let hash = f.sha256().map_err(|e| {
+            error!(
+                "Failed to compute hash for file {}: {}",
+                out.as_ref().display(),
+                e
+            );
+            return e;
+        })?;
+        let tar_hash = format!("{hash}  {tarball}\n");
         all_hashes.push_str(&tar_hash);
         std::fs::File::create(out.as_ref().join(format!("{tarball}.sha256")))?
             .write_all(tar_hash.as_bytes())?;
