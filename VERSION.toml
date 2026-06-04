@@ -1,4 +1,4 @@
-version = "1.0.0"
+version = "1.1.0"
 
 [[files]]
 file = "license/Cargo.toml"
@@ -7,9 +7,5 @@ expr = 'version = "(.*)"'
 [[files]]
 file = "xtask/Cargo.toml"
 expr = 'version = "(.*)"'
-
-[[files]]
-file = "sonar-project.properties"
-expr = "sonar.projectVersion=(.*)"
 
 [package]
